@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -59,11 +60,17 @@ type result struct {
 }
 
 func hostname() string {
-	h, _ := os.Hostname()
-	if h == "" {
-		return "unknown"
+	if h, err := os.Hostname(); err == nil && h != "" {
+		return h
 	}
-	return h
+	// Fallback: read /etc/hostname directly (works on minimal Linux installs
+	// where gethostname() syscall returns empty due to missing hostname config).
+	if data, err := os.ReadFile("/etc/hostname"); err == nil {
+		if h := strings.TrimSpace(string(data)); h != "" {
+			return h
+		}
+	}
+	return "unknown"
 }
 
 func doShell(raw json.RawMessage) result {

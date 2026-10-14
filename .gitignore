@@ -1,1 +1,4 @@
 device-agent-*
+
+# Worker-specific Skaffold defaults
+/skaffold.env
